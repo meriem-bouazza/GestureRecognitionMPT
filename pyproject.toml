@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "mediapipe>=0.10.32",
+    "scipy>=1.11.0",
     "signalhub",
     "tqdm>=4.67.3",
 ]
