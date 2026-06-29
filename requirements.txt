@@ -1,4 +1,4 @@
 mediapipe==0.10.32
-scipy==1.18.0
+scipy>=1.14.0
 signalhub @ git+https://github.com/jaboll-ai/SignalHub.git@pyproject
 tqdm==4.67.3
