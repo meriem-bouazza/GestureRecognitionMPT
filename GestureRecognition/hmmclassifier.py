@@ -278,8 +278,22 @@ class HMMClassifier:
         return max(scores, key=scores.get)
 
     def save(self, path: str):
-        pass
+        import pickle
+        data = {
+            "models": self.models,
+            "classes": self.classes,
+            "n_states": self.n_states,
+            "n_iter": self.n_iter,
+        }
+        with open(path, "wb") as f:
+            pickle.dump(data, f)
 
     @classmethod
     def load(cls, path: str):
-        pass
+        import pickle
+        with open(path, "rb") as f:
+            data = pickle.load(f)
+        classifier = cls(n_states=data["n_states"], n_iter=data["n_iter"])
+        classifier.models = data["models"]
+        classifier.classes = data["classes"]
+        return classifier
