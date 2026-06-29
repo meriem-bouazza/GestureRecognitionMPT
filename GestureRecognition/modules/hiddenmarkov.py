@@ -35,8 +35,8 @@ class HMMModule(Module):
             "all_scores": scores,
         }
         galy = GALY()
-        galy.new_layer(640, 480)
-        galy.putText(f"{best_label}  {best_score:.1f}", (0.05, 0.1))
+        galy.layer("markov")
+        galy.putText(f"{best_label}  {result['score']:.1f}", (30, 50), color=(0, 255, 255))
         
         return {self.outputSignal: result, "galy": galy}
 
