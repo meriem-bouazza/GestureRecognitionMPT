@@ -110,3 +110,29 @@ class HMMClassifier:
         classifier.models = data["models"]
         classifier.classes = data["classes"]
         return classifier
+    
+    @staticmethod
+    def train_test_split(sequences, labels, test_ratio=0.2, seed=42):
+        """Teilt Daten pro Klasse in Trainings- und Testsequenzen."""
+        rng = np.random.default_rng(seed)
+        train_seqs, train_labels = [], []
+        test_seqs, test_labels = [], []
+
+        classes = list(set(labels))
+        for klasse in classes:
+            # alle Indizes dieser Klasse
+            idx = [i for i in range(len(labels)) if labels[i] == klasse]
+            idx = rng.permutation(idx)
+
+            n_test = max(1, int(len(idx) * test_ratio))
+            test_idx = idx[:n_test]
+            train_idx = idx[n_test:]
+
+            for i in train_idx:
+                train_seqs.append(sequences[i])
+                train_labels.append(labels[i])
+            for i in test_idx:
+                test_seqs.append(sequences[i])
+                test_labels.append(labels[i])
+
+        return train_seqs, train_labels, test_seqs, test_labels
