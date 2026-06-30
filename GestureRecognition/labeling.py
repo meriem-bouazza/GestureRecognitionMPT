@@ -36,7 +36,8 @@ def data_labeling(times: int, label: str):
         result = subprocess.run(
             [sys.executable, "main.py",
              "--mode", "record",
-             "--recorder.file", temp_file],
+             "--recorder.file", temp_file,
+             "--engine.singlestep"],
         )
         if result.returncode != 0:
             print("FEHLER beim Starten von SignalHub (siehe Ausgabe oben).")
