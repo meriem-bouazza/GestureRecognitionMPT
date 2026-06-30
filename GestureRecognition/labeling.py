@@ -71,6 +71,9 @@ def data_labeling(times: int, label: str):
 def extract_trajectory(rec, finger_idx=8):
     trajectory = []
     for frame in rec["detector"]:
+        # Recorder haengt start()- ({}) und stop()- (None) Resultate an -> ueberspringen
+        if not isinstance(frame, dict) or "detector" not in frame:
+            continue
         result = frame["detector"]
         if not result.hand_landmarks:
             continue
@@ -91,7 +94,8 @@ def normalize_trajectory(trajectory):
 
 def clean_recording(rec):
     """Schneidet Frames ohne erkannte Hand am Anfang und Ende weg."""
-    frames = rec["detector"]
+    # Recorder haengt start()- ({}) und stop()- (None) Resultate an -> herausfiltern
+    frames = [f for f in rec["detector"] if isinstance(f, dict) and "detector" in f]
 
     # Für jeden Frame: war eine Hand drin? (True/False)
     has_hand = [bool(f["detector"].hand_landmarks) for f in frames]
