@@ -20,4 +20,4 @@ print("Klassen:", loaded.classes)       # ['A', 'B']
 print("Modelle:", list(loaded.models.keys()))  # ['A', 'B']
 print("Vorhersage:", loaded.predict(np.random.randn(30, 2)))  # 'A' oder 'B'
 
-# Funktioniert, save und load korrekt
+# Funktioniert mit hmmlearn
