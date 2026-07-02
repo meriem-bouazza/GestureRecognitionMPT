@@ -16,6 +16,16 @@ webcam:
   height: 720
   dtype: u8
   flip: True
+trailmarker:
+  trail_length: 400
+detector:
+  min_detection_confidence: 0.6
+  min_presence_confidence: 0.6
+  min_tracking_confidence: 0.5
+  smoothing:
+    freq: 30
+    min_cutoff: 1.0
+    beta: 0.5
 preprocessor:
   finger_idx: 8
   min_speed_corner: 0.02

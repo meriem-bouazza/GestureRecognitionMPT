@@ -1,3 +1,5 @@
+import math
+
 import cv2
 import numpy as np
 import mediapipe as mp
@@ -7,6 +9,44 @@ from mediapipe.tasks.python import vision
 from SignalHub import GALY, bgr, get_nested_key, Module
 
 mp_hand = mp.tasks.vision.HandLandmarksConnections
+
+
+class _OneEuroFilter:
+    """Adaptives Glätten eines skalaren Signals (One-Euro-Filter).
+
+    Wenig Verzögerung bei schnellen Bewegungen, starke Glättung bei Ruhe –
+    ideal gegen das Zittern der MediaPipe-Landmarks.
+    """
+
+    def __init__(self, freq, min_cutoff=1.0, beta=0.0, d_cutoff=1.0):
+        self.freq = float(freq)
+        self.min_cutoff = float(min_cutoff)
+        self.beta = float(beta)
+        self.d_cutoff = float(d_cutoff)
+        self.reset()
+
+    def reset(self):
+        self._x_prev = None
+        self._dx_prev = 0.0
+
+    def _alpha(self, cutoff):
+        tau = 1.0 / (2.0 * math.pi * cutoff)
+        te = 1.0 / self.freq
+        return 1.0 / (1.0 + tau / te)
+
+    def __call__(self, x):
+        if self._x_prev is None:
+            self._x_prev = x
+            return x
+        dx = (x - self._x_prev) * self.freq
+        a_d = self._alpha(self.d_cutoff)
+        dx_hat = a_d * dx + (1.0 - a_d) * self._dx_prev
+        cutoff = self.min_cutoff + self.beta * abs(dx_hat)
+        a = self._alpha(cutoff)
+        x_hat = a * x + (1.0 - a) * self._x_prev
+        self._x_prev = x_hat
+        self._dx_prev = dx_hat
+        return x_hat
 
 
 def draw_hand_landmarks(hand_landmarks, galy: GALY):
@@ -139,9 +179,30 @@ class HandDetector(Module):
             )
         options = vision.HandLandmarkerOptions(
             base_options=python.BaseOptions(model_asset_path=model_path),
+            running_mode=vision.RunningMode.VIDEO,
             num_hands=1,
+            min_hand_detection_confidence=get_nested_key(
+                "config.detector.min_detection_confidence", data) or 0.6,
+            min_hand_presence_confidence=get_nested_key(
+                "config.detector.min_presence_confidence", data) or 0.6,
+            min_tracking_confidence=get_nested_key(
+                "config.detector.min_tracking_confidence", data) or 0.5,
         )
         self.landmarker = vision.HandLandmarker.create_from_options(options)
+
+        # VIDEO-Modus braucht streng steigende Zeitstempel (in ms).
+        self.frame_interval_ms = 33  # ~30 FPS
+        self.timestamp_ms = 0
+
+        # One-Euro-Glättung gegen Landmark-Jitter: ein Filter je x/y pro Landmark.
+        freq = get_nested_key("config.detector.smoothing.freq", data) or 30.0
+        min_cutoff = get_nested_key("config.detector.smoothing.min_cutoff", data) or 1.0
+        beta = get_nested_key("config.detector.smoothing.beta", data) or 0.5
+        self.smoothers = [
+            (_OneEuroFilter(freq, min_cutoff, beta),
+             _OneEuroFilter(freq, min_cutoff, beta))
+            for _ in range(21)
+        ]
 
         W = get_nested_key("config.webcam.width", data) or 640
         H = get_nested_key("config.webcam.height", data) or 360
@@ -203,7 +264,21 @@ class HandDetector(Module):
         frame = data["webcam"]
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
-        result = self.landmarker.detect(mp_image)
+
+        # VIDEO-Modus: Landmarks werden über Frames getrackt (stabiler, schneller).
+        self.timestamp_ms += self.frame_interval_ms
+        result = self.landmarker.detect_for_video(mp_image, self.timestamp_ms)
+
+        if result.hand_landmarks:
+            # Jitter der x/y-Landmarks glätten (nutzen z.B. Preprocessor/TrailMarker).
+            for lm, (fx, fy) in zip(result.hand_landmarks[0], self.smoothers):
+                lm.x = fx(lm.x)
+                lm.y = fy(lm.y)
+        else:
+            # Hand verloren -> Filterzustand zurücksetzen, damit die Spur nicht springt.
+            for fx, fy in self.smoothers:
+                fx.reset()
+                fy.reset()
 
         galy = GALY()
         galy.layer("detector")

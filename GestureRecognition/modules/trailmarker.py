@@ -104,7 +104,9 @@ class TrailMarker(Module):
         config = data["config"]
         self.finger_idx = get_nested_key("preprocessor.finger_idx", config)
         self.max_lost = get_nested_key("preprocessor.max_lost", config)
-        self.trail = deque(maxlen=120)
+        # Wie viele Punkte der Spur sichtbar bleiben (mehr = Zeichnung bleibt länger).
+        trail_length = get_nested_key("trailmarker.trail_length", config) or 400
+        self.trail = deque(maxlen=trail_length)
         self.lost_count = 0
         self.color = bgr("#FFFF00")
 
