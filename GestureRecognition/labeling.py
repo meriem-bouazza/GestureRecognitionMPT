@@ -36,8 +36,7 @@ def data_labeling(times: int, label: str):
         result = subprocess.run(
             [sys.executable, "main.py",
              "--mode", "record",
-             "--recorder.file", temp_file,
-             "--engine.singlestep"],
+             "--recorder.file", temp_file],
         )
         if result.returncode != 0:
             print("FEHLER beim Starten von SignalHub (siehe Ausgabe oben).")
@@ -56,13 +55,7 @@ def data_labeling(times: int, label: str):
             print("Keine Hand erkannt — Aufnahme verworfen.\n")
             continue
 
-        if sys.stdin is None or not sys.stdin.isatty():
-            # Kein interaktives Terminal (z.B. aus einem Tool gestartet):
-            # nicht abstürzen, sondern erkannte Aufnahme automatisch speichern.
-            choice = "j"
-            print("Kein interaktives Terminal — Aufnahme automatisch gespeichert (j).")
-        else:
-            choice = input("Speichern? (j/n/q): ").strip().lower()
+        choice = input("Speichern? (j/n/q): ").strip().lower()
         if choice == "q":
             print("Aufnahme-Session abgebrochen.")
             break
@@ -78,9 +71,6 @@ def data_labeling(times: int, label: str):
 def extract_trajectory(rec, finger_idx=8):
     trajectory = []
     for frame in rec["detector"]:
-        # Recorder haengt start()- ({}) und stop()- (None) Resultate an -> ueberspringen
-        if not isinstance(frame, dict) or "detector" not in frame:
-            continue
         result = frame["detector"]
         if not result.hand_landmarks:
             continue
@@ -101,11 +91,10 @@ def normalize_trajectory(trajectory):
 
 def clean_recording(rec):
     """Schneidet Frames ohne erkannte Hand am Anfang und Ende weg."""
-    # Recorder haengt start()- ({}) und stop()- (None) Resultate an -> herausfiltern
-    frames = [f for f in rec["detector"] if isinstance(f, dict) and "detector" in f]
+    frames = rec["detector"]
 
     # Für jeden Frame: war eine Hand drin? (True/False)
-    has_hand = [bool(f["detector"].hand_landmarks) for f in frames]
+    has_hand = [bool(f["detector"].hand_landmarks) for f in frames if isinstance(f, dict) and "detector" in f]
 
     if not any(has_hand):
         return None  # gar keine Hand -> unbrauchbare Aufnahme
