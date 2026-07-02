@@ -71,6 +71,8 @@ def data_labeling(times: int, label: str):
 def extract_trajectory(rec, finger_idx=8):
     trajectory = []
     for frame in rec["detector"]:
+        if not isinstance(frame, dict) or "detector" not in frame:
+            continue
         result = frame["detector"]
         if not result.hand_landmarks:
             continue
