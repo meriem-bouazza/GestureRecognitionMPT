@@ -56,7 +56,13 @@ def data_labeling(times: int, label: str):
             print("Keine Hand erkannt — Aufnahme verworfen.\n")
             continue
 
-        choice = input("Speichern? (j/n/q): ").strip().lower()
+        if sys.stdin is None or not sys.stdin.isatty():
+            # Kein interaktives Terminal (z.B. aus einem Tool gestartet):
+            # nicht abstürzen, sondern erkannte Aufnahme automatisch speichern.
+            choice = "j"
+            print("Kein interaktives Terminal — Aufnahme automatisch gespeichert (j).")
+        else:
+            choice = input("Speichern? (j/n/q): ").strip().lower()
         if choice == "q":
             print("Aufnahme-Session abgebrochen.")
             break
