@@ -36,8 +36,13 @@ Desktop.ini
 * 2.*
 * 2/
 
-# Projektspezifisch: Daten nicht committen
-data/
+# Projektspezifisch: nichts aus data/ committen -- ausser die .npy-Aufnahmen
+data/*
+!data/recordings/
+data/recordings/*
+!data/recordings/*/
+data/recordings/*/*
+!data/recordings/*/*.npy
 *.pkl
 
 # MediaPipe-Modell (wird automatisch heruntergeladen)
