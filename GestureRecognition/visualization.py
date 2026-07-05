@@ -1,69 +1,64 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-def visualize_dataset():
+def visualize_dataset(recordings_dir="data/recordings", max_examples=8, ncols=6):
+    """Plottet echte Trajektorien pro Klasse (Datensatz-Inspektion).
 
-    sequences = [np.random.randn(30,2) for _ in range(10)]
-    labels = ["A"]* 5 + ["B"] * 5 
+    Laedt die aufgenommenen Sequenzen und zeigt pro Buchstabe mehrere
+    Beispiele uebereinander -- so werden Ausreisser und Unterschiede
+    zwischen den Gesten sofort sichtbar.
+
+    Parameters
+    ----------
+    recordings_dir : str
+        Ordner mit den Aufnahmen (Unterordner = Label, darin .npy-Dateien).
+    max_examples : int
+        Maximale Anzahl Beispiele, die pro Klasse geplottet werden.
+    ncols : int
+        Anzahl Spalten im Raster.
+    """
+    import math
+    from GestureRecognition.labeling import dataset_building
+
+    # echten Datensatz laden statt Zufallsdaten
+    sequences, labels = dataset_building(recordings_dir)
+    if not sequences:
+        print("Keine Aufnahmen gefunden.")
+        return
+
     classes = sorted(set(labels))
-    fig, axes = plt.subplots(1, len(classes), figsize=(5* len(classes), 4))
-    for i, cls in enumerate (classes):
+    # bis zu max_examples Beispiele pro Klasse sammeln
+    per_class = {c: [] for c in classes}
+    for seq, lbl in zip(sequences, labels):
+        if len(per_class[lbl]) < max_examples:
+            per_class[lbl].append(np.asarray(seq))
+
+    n = len(classes)
+    nrows = math.ceil(n / ncols)
+    fig, axes = plt.subplots(nrows, ncols, figsize=(2.2 * ncols, 2.2 * nrows))
+    axes = np.array(axes).reshape(-1)
+
+    for ax in axes:            # leere Zellen ausblenden
+        ax.axis("off")
+
+    cmap = plt.get_cmap("tab20")
+    for i, cls in enumerate(classes):
         ax = axes[i]
-        for seq, lbl in zip(sequences, labels):
-            if lbl == cls:
-                ax.plot(seq[:,0], seq[:,1])
-        ax.set_title(f"Klasse {cls}")
-    
+        ax.axis("on")
+        ax.set_xticks([])
+        ax.set_yticks([])
+        for seq in per_class[cls]:
+            # eine Farbe pro Klasse; ueberlagerte Beispiele zeigen Ausreisser
+            ax.plot(seq[:, 0], seq[:, 1], lw=1, alpha=0.7, color=cmap(i % 20))
+        ax.set_title(f"{cls}  (n={len(per_class[cls])})", fontsize=9)
+        ax.set_aspect("equal")
+        ax.invert_yaxis()      # Bildkoordinaten: y zeigt nach unten
+
+    fig.suptitle(f"Datensatz: {len(sequences)} Sequenzen, {n} Klassen", fontsize=12)
+    plt.tight_layout()
+    plt.savefig("dataset_overview.png", dpi=150)
+    print("Gespeichert: dataset_overview.png")
     plt.show()
-    """
-    TODO: Visualisierung des eigenen Datensatzes
-
-    Ziel:
-    -----
-    Entwickle eine Möglichkeit, deinen aufgenommenen Datensatz visuell zu
-    inspizieren und zu verstehen.
-
-    Warum ist das wichtig?
-    ----------------------
-    - Du musst nachvollziehen können, was dein Modell eigentlich „sieht“
-    - Fehler im Datensatz lassen sich visuell oft sofort erkennen
-    - Qualität der Daten ist entscheidend für die Modellperformance
-
-    Anforderungen / Ideen:
-    ----------------------
-    - Lade deinen Trainingsdatensatz
-    - Visualisiere mehrere Sequenzen pro Klasse
-    - Stelle sicher, dass:
-        - unterschiedliche Gesten klar unterscheidbar sind
-        - Sequenzen sinnvoll aussehen (keine Ausreißer, keine leeren Daten)
-
-    .. tip::
-       Ein einfacher Ansatz:
-         - Plotte Trajektorien (z. B. x/y-Koordinaten)
-         - Zeige mehrere Beispiele pro Klasse übereinander
-
-    .. note::
-       Du kannst selbst entscheiden:
-         - Wie viele Sequenzen du anzeigst
-         - Welche Features du visualisierst
-         - Ob du interaktive Elemente einbaust
-
-    .. tip::
-       Interaktivität (z. B. Klick auf eine Sequenz) kann hilfreich sein,
-       um einzelne Beispiele genauer zu untersuchen.
-
-    Abgabe:
-    -------
-    - Du musst in der Lage sein, deinen Datensatz visuell zu präsentieren
-    - Du solltest erklären können:
-        - Wie unterscheiden sich die Klassen?
-        - Gibt es problematische Beispiele?
-
-    Erweiterung (optional):
-    -----------------------
-    - Mittelwerte oder typische Sequenzen pro Klasse darstellen
-    - Ausreißer automatisch erkennen
-    """
 
 
 def evaluate_classifier():
