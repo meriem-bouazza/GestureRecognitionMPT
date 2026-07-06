@@ -55,6 +55,13 @@ def data_labeling(times: int, label: str):
             print("Keine Hand erkannt — Aufnahme verworfen.\n")
             continue
 
+        # stdin-Buffer leeren (verhindert dass Enter-Drücke im Qt-Fenster die Eingabe überspringen)
+        try:
+            import msvcrt
+            while msvcrt.kbhit():
+                msvcrt.getch()
+        except Exception:
+            pass
         choice = input("Speichern? (j/n/q): ").strip().lower()
         if choice == "q":
             print("Aufnahme-Session abgebrochen.")

@@ -5,7 +5,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "GestureRecognition")
 
 from labeling import data_labeling
 
-GESTURES = [chr(c) for c in range(ord("A"), ord("Z") + 1)]
+GESTURES = ["H", "W", "X"]
 PER_PERSON = 6
 RECORDINGS_DIR = Path("data/recordings")
 

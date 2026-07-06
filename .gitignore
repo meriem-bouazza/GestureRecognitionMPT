@@ -11,6 +11,7 @@ __pycache__/
 .venv/
 venv/
 env/
+venv311/
 
 # uv
 # uv.lock NICHT ignorieren - die soll committet werden!
