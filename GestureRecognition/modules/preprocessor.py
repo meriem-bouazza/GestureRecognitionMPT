@@ -1,6 +1,7 @@
 import numpy as np
 from SignalHub import GALY, get_nested_key, Module
 from collections import deque
+from GestureRecognition.labeling import resample_by_arc_length
 
 class Preprocessor(Module):
     """
@@ -193,8 +194,9 @@ class Preprocessor(Module):
         scale = max(traj[:, 0].max() - traj[:, 0].min(),
                     traj[:, 1].max() - traj[:, 1].min())
         if scale > 0:
-            traj /= scale
+            traj /= scale   
 
+        traj = resample_by_arc_length(traj, n_points=50)
         return {"preprocessor": traj}
 
     def stop(self, data):

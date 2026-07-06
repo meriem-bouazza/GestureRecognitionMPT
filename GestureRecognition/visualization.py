@@ -76,7 +76,7 @@ def evaluate_classifier():
     print(f"Test:  {len(test_seqs)} Sequenzen")
 
     # Modell trainieren und als data/hmm.pkl speichern
-    clf = HMMClassifier(n_states=7, n_iter=100)
+    clf = HMMClassifier(n_states=8, n_iter=100)
     clf.fit(train_seqs, train_labels)
     clf.save("data/hmm.pkl")
     print("Modell gespeichert: data/hmm.pkl")

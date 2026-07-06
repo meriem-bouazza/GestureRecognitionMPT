@@ -91,6 +91,27 @@ def normalize_trajectory(trajectory):
         traj /= scale
     return traj
 
+def resample_by_arc_length(trajectory, n_points=50):
+    """Resample eine Trajektorie auf n_points Punkte entlang der Bogenlänge.
+    Macht die Repräsentation unabhängig von der Zeichengeschwindigkeit
+    """
+    traj = np.asarray(trajectory, dtype=np.float64)
+    if len(traj) < 2:
+        return np.repeat(traj, n_points, axis=0).astype(np.float32)
+
+    seg_lengths = np.linalg.norm(np.diff(traj, axis=0), axis=1)
+    cum_len = np.concatenate([[0.0], np.cumsum(seg_lengths)])
+    total_len = cum_len[-1]
+
+    if total_len == 0:
+        return np.repeat(traj[:1], n_points, axis=0).astype(np.float32)
+
+    targets = np.linspace(0, total_len, n_points)
+    x = np.interp(targets, cum_len, traj[:, 0])
+    y = np.interp(targets, cum_len, traj[:, 1])
+    return np.stack([x, y], axis=1).astype(np.float32)
+
+
 def clean_recording(rec):
     """Schneidet Frames ohne erkannte Hand am Anfang und Ende weg."""
     frames = rec["detector"]
@@ -126,7 +147,7 @@ def save_recording(rec, label, base_dir="data/recordings"):
     return path
     
 
-def dataset_building(output_path):
+def dataset_building(output_path, n_points=50):
     """
     TODO: dataset_building: Trainingsdatensatz aus aufgenommenen Gesten erstellen
 
@@ -208,6 +229,7 @@ def dataset_building(output_path):
         if traj.shape[0] < 2:
             continue
 
+        traj = resample_by_arc_length(traj, n_points=n_points)
         sequences.append(traj)
         labels.append(label)
 

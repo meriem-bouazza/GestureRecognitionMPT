@@ -22,7 +22,7 @@ class HMMClassifier:
     def fit(self, sequences: list, labels: list):
         """Trainiert ein GaussianHMM pro Klasse mit hmmlearn."""
         sequences = [np.array(seq) for seq in sequences]
-        self.classes = list(set(labels))
+        self.classes = sorted(set(labels))
 
         for klasse in self.classes:
             klasse_seqs = [sequences[i] for i in range(len(labels)) if labels[i] == klasse]
@@ -104,7 +104,7 @@ class HMMClassifier:
         train_seqs, train_labels = [], []
         test_seqs, test_labels = [], []
 
-        classes = list(set(labels))
+        classes = sorted(set(labels))
         for klasse in classes:
             idx = [i for i in range(len(labels)) if labels[i] == klasse]
             idx = rng.permutation(idx)  # mischen für fairen Split
