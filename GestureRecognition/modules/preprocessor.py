@@ -1,7 +1,11 @@
 import numpy as np
 from SignalHub import GALY, get_nested_key, Module
 from collections import deque
-from GestureRecognition.labeling import resample_by_arc_length
+from GestureRecognition.labeling import (
+    resample_by_arc_length,
+    add_velocity_features,
+    add_curvature_feature,
+)
 
 class Preprocessor(Module):
     """
@@ -197,6 +201,8 @@ class Preprocessor(Module):
             traj /= scale   
 
         traj = resample_by_arc_length(traj, n_points=50)
+        traj = add_velocity_features(traj)
+        traj = add_curvature_feature(traj)
         return {"preprocessor": traj}
 
     def stop(self, data):
