@@ -130,6 +130,24 @@ def add_velocity_features(traj):
     return np.concatenate([traj, velocity], axis=1).astype(np.float32)
 
 
+def add_curvature_feature(traj):
+    """Erweitert (T,4)-Features (Position + Geschwindigkeit aus add_velocity_features)
+    um die Kruemmung -> (T,5). Kruemmung = Richtungsaenderung zwischen aufeinander-
+    folgenden Bewegungssegmenten, berechnet aus den Geschwindigkeitsspalten (2,3).
+
+    Muss nach add_velocity_features aufgerufen werden.
+    """
+    vx, vy = traj[:, 2], traj[:, 3]
+    angles = np.arctan2(vy, vx)
+
+    curvature = np.zeros(len(traj), dtype=np.float32)
+    dtheta = np.diff(angles[1:])                       # Richtungsaenderung ab dem ersten echten Segment
+    dtheta = (dtheta + np.pi) % (2 * np.pi) - np.pi     # kuerzester Drehwinkel, kein Wraparound bei +-pi
+    curvature[2:] = dtheta
+
+    return np.concatenate([traj, curvature[:, None]], axis=1).astype(np.float32)
+
+
 def clean_recording(rec):
     """Schneidet Frames ohne erkannte Hand am Anfang und Ende weg."""
     frames = rec["detector"]
@@ -249,6 +267,7 @@ def dataset_building(output_path, n_points=50):
 
         traj = resample_by_arc_length(traj, n_points=n_points)
         traj = add_velocity_features(traj)
+        traj = add_curvature_feature(traj)
         sequences.append(traj)
         labels.append(label)
 
