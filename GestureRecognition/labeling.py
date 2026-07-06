@@ -119,6 +119,17 @@ def resample_by_arc_length(trajectory, n_points=50):
     return np.stack([x, y], axis=1).astype(np.float32)
 
 
+def add_velocity_features(traj):
+    """Erweitert eine (T,2) Trajektorie um Geschwindigkeit/Richtung (Δx,Δy) -> (T,4).
+
+    Muss identisch auf Trainings- (dataset_building) und Live-Pfad
+    (Preprocessor) angewendet werden, sonst weichen die Features voneinander ab.
+    """
+    velocity = np.zeros_like(traj)
+    velocity[1:] = np.diff(traj, axis=0)
+    return np.concatenate([traj, velocity], axis=1).astype(np.float32)
+
+
 def clean_recording(rec):
     """Schneidet Frames ohne erkannte Hand am Anfang und Ende weg."""
     frames = rec["detector"]
@@ -237,6 +248,7 @@ def dataset_building(output_path, n_points=50):
             continue
 
         traj = resample_by_arc_length(traj, n_points=n_points)
+        traj = add_velocity_features(traj)
         sequences.append(traj)
         labels.append(label)
 
