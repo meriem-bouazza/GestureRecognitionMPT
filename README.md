@@ -39,3 +39,15 @@ Webcam → HandDetector → Preprocessor → HMMModule
 
 
 <img width="830" height="1430" alt="Dataset" src="https://github.com/user-attachments/assets/dd61fa9d-353a-46ed-adea-7a28238e1f9e" />
+
+## Setup
+
+**Wichtig: Python 3.11 verwenden.** `hmmlearn` und `mediapipe` stellen (Stand jetzt) keine vorgebauten Wheels für neuere Python-Versionen (z.B. 3.14) bereit — die Installation schlägt dort fehl bzw. `mediapipe` stürzt zur Laufzeit ab.
+
+```
+py -3.11 -m venv venv311
+venv311\Scripts\activate
+pip install -r requirements.txt
+```
+
+Das Repo enthält `.vscode/settings.json`, das `venv311` als Standard-Interpreter für VS Code setzt. Falls VS Code trotzdem einen anderen Interpreter verwendet: `Strg+Shift+P` → **"Python: Select Interpreter"** → `venv311` auswählen.

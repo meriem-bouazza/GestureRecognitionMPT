@@ -17,7 +17,8 @@ venv311/
 # uv.lock NICHT ignorieren - die soll committet werden!
 
 # IDE / Editor
-.vscode/
+.vscode/*
+!.vscode/settings.json
 .idea/
 *.swp
 *.swo

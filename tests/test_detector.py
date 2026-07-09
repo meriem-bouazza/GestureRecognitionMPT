@@ -1,3 +1,6 @@
+import sys
+sys.path.append(".")
+
 import cv2
 from hand_detector import HandDetector
 
