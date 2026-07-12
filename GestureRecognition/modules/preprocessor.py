@@ -1,5 +1,5 @@
 import numpy as np
-from SignalHub import GALY, get_nested_key, Module
+from SignalHub import get_nested_key, Module
 from collections import deque
 from GestureRecognition.labeling import (
     resample_by_arc_length,
