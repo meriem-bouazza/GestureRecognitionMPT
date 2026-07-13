@@ -47,12 +47,10 @@ Jedes Modul bekommt dabei nur die Signale, die es braucht. Die HMM-Stufe
 sieht zum Beispiel nie ein Rohbild, sondern nur die fertige Trajektorie.
 
 ## 3. Datenbasis
-Wir haben 27 Klassen aufgenommen: die 26 Buchstaben A–Z sowie eine
-zusätzliche Testklasse "herz", mit der wir das Prüfungsszenario (eine neue
-Geste live aufnehmen) vorab ausprobiert haben. Insgesamt sind das 788
-Aufnahmen, davon 4 für "herz" und im Schnitt etwa 30 pro Buchstabe (fünf
-Personen mit je sechs Aufnahmen, teils mehrfach nachjustiert). Jede
-Aufnahme ist eine rohe (T, 2)-Fingerspur, gespeichert unter
+Der abgegebene Datensatz umfasst 26 Klassen, die Buchstaben A–Z. Insgesamt
+sind das 784 Aufnahmen, im Schnitt etwa 30 pro Buchstabe (fünf Personen mit
+je sechs Aufnahmen, teils mehrfach nachjustiert). Jede Aufnahme ist eine
+rohe (T, 2)-Fingerspur, gespeichert unter
 `data/recordings/<KLASSE>/<timestamp>.npy`.
 
 Bei fünf Personen kommen zwangsläufig unterschiedlich saubere Aufnahmen
@@ -68,15 +66,15 @@ ins Modell geht, durchläuft sie ein paar Schritte, und zwar in Training und
 Live über dieselbe Funktion, nicht über zwei getrennt gepflegte
 Implementierungen:
 
-1. Resampling entlang der Bogenlänge auf 50 Punkte. Das macht die
+1. Zentrieren und Skalieren auf die Bounding-Box der Geste.
+2. Resampling entlang der Bogenlänge auf 50 Punkte. Das macht die
    Darstellung unabhängig davon, wie schnell oder langsam gezeichnet wurde.
-2. Zentrieren und Skalieren auf die Bounding-Box der Geste.
 3. Geschwindigkeit (Δx, Δy zum vorherigen Punkt) als zusätzliche Dimension.
 4. Krümmung (Richtungsänderung zwischen zwei Bewegungssegmenten) als fünfte
    Dimension.
 5. Für das Training zusätzlich: jede Sequenz wird auch rückwärts
    durchlaufen mit ins Training gegeben. Das verdoppelt den effektiven
-   Datensatz auf 1576 Sequenzen und macht das Modell unabhängiger vom
+   Datensatz auf 1568 Sequenzen und macht das Modell unabhängiger vom
    Startpunkt einer Geste.
 
 Am Ende ist der Vektor pro Zeitschritt fünfdimensional: (x, y, Δx, Δy,
@@ -92,7 +90,7 @@ Start, Mitte und Ende einer Geste.
 - Für jede Klasse werden alle zugehörigen Sequenzen gestapelt trainiert,
   zusammen mit einem Längenvektor, damit hmmlearn keine Übergänge
   zwischen unabhängigen Aufnahmen lernt.
-- Eine neue Spur wird gegen alle 27 Modelle bewertet (Forward-Algorithmus,
+- Eine neue Spur wird gegen alle 26 Modelle bewertet (Forward-Algorithmus,
   Log-Likelihood), und die Klasse mit dem höchsten Wert gewinnt.
 
 ## 6. Was wir bei der Genauigkeit herausgefunden haben
@@ -105,7 +103,7 @@ Sequenzlänge.
 **Machen mehr Features die Erkennung automatisch besser?** Nicht
 unbedingt, das war für uns die eigentliche Überraschung. Wir haben das
 isoliert getestet, mit identischen Daten und nur unterschiedlicher
-Vorverarbeitung (n = 788, 27 Klassen, 5 Seeds):
+Vorverarbeitung (n = 784, 26 Klassen, 5 Seeds):
 
 | Feature-Stufe | Test (Seed 42) | Mittel ± Std über 5 Splits |
 |---|---|---|
@@ -124,8 +122,8 @@ die Irre führen können. Interessanter als der Sprung im Mittelwert
 ±4,6 % auf ±1,3 %. Das Modell liefert damit nicht nur im Schnitt bessere,
 sondern vor allem gleichmäßigere Ergebnisse.
 
-Zum Vergleich: das komplette System mit Rückwärts-Training (1576
-Sequenzen statt 788) kommt im Einzel-Split auf 79,6 %, also im Rahmen der
+Zum Vergleich: das komplette System mit Rückwärts-Training (1568
+Sequenzen statt 784) kommt im Einzel-Split auf 79,6 %, also im Rahmen der
 Schwankung ähnlich wie die einfache Variante. Der Nutzen des
 Rückwärts-Trainings liegt hier weniger in der reinen Accuracy-Zahl als in
 der Robustheit gegenüber der Zeichenrichtung im Live-Betrieb.
@@ -133,8 +131,7 @@ der Robustheit gegenüber der Zeichenrichtung im Live-Betrieb.
 Bei den Fehlern (siehe `confusion_matrix.png`) verwechselt das Modell vor
 allem form- oder bewegungsähnliche Buchstaben, etwa G und O, C und G, N
 und W, E und F, A und Y. Das ist bei einer rein trajektorienbasierten
-Erkennung nachvollziehbar. Die Testgeste "herz" wurde trotz nur vier
-Trainingsaufnahmen richtig erkannt.
+Erkennung nachvollziehbar.
 
 ## 7. Verhalten im Live-Betrieb
 Im Live-Betrieb läuft dieselbe Preprocessing-Funktion wie im Training
@@ -143,8 +140,7 @@ Implementierung für den Live-Pfad.
 
 Für das Prüfungsszenario haben wir `record_new_gesture.py` gebaut: das
 Skript fragt interaktiv nach Name und Anzahl der neuen Geste, nimmt sie
-live auf und trainiert das Modell danach automatisch neu. Wir haben das
-schon mit der Testgeste "herz" ausprobiert.
+live auf und trainiert das Modell danach automatisch neu.
 
 Ein Halten der Entf-Taste setzt die aktuell gesammelte Spur zurück, ohne
 dass das Programm neu gestartet werden muss (dazu wird dauerhaft "ENTF:
@@ -169,9 +165,21 @@ einem etwas geringeren Wert zu rechnen.
   einfach anzunehmen und zu ergänzen.
 
 ## 9. Setup zum Nachvollziehen
-```bash
-source .venv/bin/activate
+Umgebung aktivieren:
 
+```bash
+# macOS / Linux
+source .venv/bin/activate
+```
+
+```powershell
+# Windows (PowerShell)
+.venv\Scripts\Activate.ps1
+```
+
+Danach (Befehle sind auf beiden Systemen gleich):
+
+```bash
 # Neue Geste live aufnehmen und Modell automatisch neu trainieren
 python record_new_gesture.py
 
