@@ -1,6 +1,6 @@
-# Projektdokumentation: Luftschrift-Erkennung mit Hidden-Markov-Modellen
+# Projektdokumentation: Gesture Recognition
 
-**GestureRecognitionMPT** · Modul D4.1.1 Machine Perception und Tracking (Prof. Dr. Dennis Müller) ·
+**GestureRecognitionMPT** 
 
 In diesem Projekt haben wir zu fünft ein System gebaut, das mit dem
 Zeigefinger in die Luft gezeichnete Buchstaben (A–Z) erkennt. Die
@@ -95,12 +95,14 @@ Start, Mitte und Ende einer Geste.
 
 ## 6. Was wir bei der Genauigkeit herausgefunden haben
 
-**Hilft festes Resampling überhaupt?** Ja, deutlich. Schon die reine,
+#### Hilft festes Resampling überhaupt?
+Ja, deutlich. Schon die reine,
 resamplete (x,y)-Position kam auf 78,5 % (±4,6 % über fünf Test-Splits),
 im Vergleich zu spürbar instabileren Werten ohne einheitliche
 Sequenzlänge.
 
-**Machen mehr Features die Erkennung automatisch besser?** Nicht
+#### Machen mehr Features die Erkennung automatisch besser?
+Nicht
 unbedingt, das war für uns die eigentliche Überraschung. Wir haben das
 isoliert getestet, mit identischen Daten und nur unterschiedlicher
 Vorverarbeitung (n = 784, 26 Klassen, 5 Seeds):
@@ -116,7 +118,8 @@ Frames zu verstärken, als brauchbares Signal zu liefern. Erst zusammen
 mit der Krümmung, die eher die Form der Bewegung beschreibt als ihre
 Feinheiten, kippt der Effekt ins Positive.
 
-**Ist die Zahl überhaupt belastbar?** Ein einzelner Split hätte hier in
+#### Ist die Zahl überhaupt belastbar?
+Ein einzelner Split hätte hier in
 die Irre führen können. Interessanter als der Sprung im Mittelwert
 (78,5 % auf 82,4 %) fanden wir eigentlich den Rückgang der Streuung von
 ±4,6 % auf ±1,3 %. Das Modell liefert damit nicht nur im Schnitt bessere,
@@ -152,19 +155,7 @@ Die gemessenen rund 80 % beziehen sich auf die Hände der fünf
 Teammitglieder. Bei einer fremden Hand, etwa der des Prüfers, ist eher mit
 einem etwas geringeren Wert zu rechnen.
 
-## 8. Offene Punkte
-- Die Klassifikation läuft kontinuierlich, sobald genug Punkte gesammelt
-  sind (min_steps = 15). Ohne ein explizites Start- oder Stopp-Signal kann
-  das bei zögerlichem Zeichnen zu kurzzeitig flackernden Ergebnissen
-  führen.
-- Es gibt noch kein Hot-Reload des Modells nach dem Retraining.
-- Der Datensatz stammt bisher nur von uns fünf. Aufnahmen weiterer
-  Personen würden zeigen, wie gut das System wirklich generalisiert.
-- Der Geschwindigkeits-Befund aus Abschnitt 6 zeigt uns, dass wir weitere
-  Feature-Ideen künftig eher einzeln gegenprüfen sollten, statt sie
-  einfach anzunehmen und zu ergänzen.
-
-## 9. Setup zum Nachvollziehen
+## 8. Setup zum Nachvollziehen
 Umgebung aktivieren:
 
 ```bash
@@ -189,9 +180,3 @@ python -c "from GestureRecognition.visualization import evaluate_classifier; eva
 # Live-Erkennung starten
 python main.py
 ```
-
----
-*Zuordnung zu den Bewertungskriterien: Funktionalität und Robustheit siehe
-Abschnitt 2 und 7, Datenqualität siehe Abschnitt 3, Modellperformance siehe
-Abschnitt 5 und 6, Verständlichkeit und Nachvollziehbarkeit durchgängig,
-besonders in Abschnitt 6 und 1.*
