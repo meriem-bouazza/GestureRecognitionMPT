@@ -265,11 +265,12 @@ def dataset_building(output_path, n_points=50):
         if traj.shape[0] < 2:
             continue
 
-        traj = resample_by_arc_length(traj, n_points=n_points)
-        traj = add_velocity_features(traj)
-        traj = add_curvature_feature(traj)
-        sequences.append(traj)
-        labels.append(label)
+        for version in (traj, traj[::-1]):
+            resampled = resample_by_arc_length(version, n_points=n_points)
+            resampled = add_velocity_features(resampled)
+            resampled = add_curvature_feature(resampled)
+            sequences.append(resampled)
+            labels.append(label)
 
     print(f"{len(sequences)} Sequenzen geladen, Klassen: {sorted(set(labels))}")
     return sequences, labels

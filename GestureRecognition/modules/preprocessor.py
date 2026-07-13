@@ -6,6 +6,7 @@ from GestureRecognition.labeling import (
     add_velocity_features,
     add_curvature_feature,
 )
+from GestureRecognition.hotkeys import reset_requested
 
 class Preprocessor(Module):
     """
@@ -177,6 +178,11 @@ class Preprocessor(Module):
 
             ``return {outputSignal: trajectory}``
         """
+        if reset_requested():
+            self.trajectory.clear()
+            self.lost_count = 0
+            return {"preprocessor": None}
+
         result = data["detector"]
 
         if result is None or not result.hand_landmarks:

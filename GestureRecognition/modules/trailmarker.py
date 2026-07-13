@@ -1,6 +1,7 @@
 import numpy as np
 from SignalHub import GALY, bgr, Module, get_nested_key
 from collections import deque
+from GestureRecognition.hotkeys import reset_requested
 
 class TrailMarker(Module):
     """
@@ -116,10 +117,14 @@ class TrailMarker(Module):
         return {}
 
     def step(self, data):
+        if reset_requested():
+            self.trail.clear()
+
         result = data["detector"]
         galy = GALY()
         galy.layer("trailmarker")
         galy.set_layer_affine_mapping(self.mapping)
+        galy.putText("ENTF: neue Geste", (30, 700), color=(0, 255, 255))
 
         if result is None or not result.hand_landmarks:
             self.lost_count += 1
