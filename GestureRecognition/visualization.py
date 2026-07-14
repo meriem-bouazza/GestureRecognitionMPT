@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-def visualize_dataset(recordings_dir="data/recordings", max_examples=8, ncols=6):
+def visualize_dataset(recordings_dir="data/recordings", max_examples=50, ncols=6):
     """Plottet echte Trajektorien pro Klasse (Datensatz-Inspektion).
 
     Laedt die aufgenommenen Sequenzen und zeigt pro Buchstabe mehrere
